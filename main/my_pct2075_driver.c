@@ -32,7 +32,11 @@ app_main(void)
 		while (1);
 	}
 
+	/* this function will generate a error, comment it out for the
+	 * temperature demonstration
+	 */
 	pct2075_get_tidle(pct2075_handle);
+
 	count = 0;
 	toggle = 0;
 	while (1) {
@@ -40,6 +44,7 @@ app_main(void)
 		temp = pct2075_get_temp(pct2075_handle);
 		printf("temperature: %d\n", (unsigned int)temp);
 
+#if 0
 		count++;
 		if (count == 1) {
 			//printf("toggle %d\n", toggle);
@@ -50,6 +55,7 @@ app_main(void)
 			count = 0;
 			//toggle = !toggle;
 		}
+#endif
 		vTaskDelay(200);
 	}
 }

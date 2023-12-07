@@ -152,20 +152,22 @@ pct2075_wakeup(i2c_master_dev_handle_t pct2075_dev)
  *
  * returns the calculated temperature (with 3 fixed point accurracy)
  */
-uint32_t
+int32_t
 pct2075_get_temp(i2c_master_dev_handle_t pct2075_dev)
 {
-	uint32_t to_return = 0;
+	int32_t to_return = 0;
 	uint16_t raw_temp;
 
 	raw_temp = pct2075_get_temp_raw(pct2075_dev);
 
-	if (!(raw_temp & 0x8000))
-		to_return = ((((uint32_t)raw_temp) >> 5) & 0b1111111111) * 125;
-	else
+	if (!(raw_temp & 0x8000)) {
+		to_return = ((((int32_t)raw_temp) >> 5) & 0b1111111111) * 125;
+	} else {
 		to_return =
-		    ((((~((uint32_t) raw_temp)) >> 5) & 0b1111111111) +
+		    ((((~((int32_t) raw_temp)) >> 5) & 0b1111111111) +
 		     1) * 125;
+		to_return = -1 * to_return;
+	}
 	
 	return to_return;
 }
@@ -312,7 +314,6 @@ pct2075_get_2byte_register(i2c_master_dev_handle_t pct2075_dev, uint8_t address)
 	raw_data_constructed = (raw_data[0] << 8) | raw_data[1];
 
 	return raw_data_constructed;
-
 }
 
 /*

@@ -54,7 +54,7 @@ int pct2075_conf_os_comp_int(i2c_master_dev_handle_t pct2075_dev,
 int pct2075_conf_mode(i2c_master_dev_handle_t pct2075_dev, enum MODE val);
 int pct2075_shutdown(i2c_master_dev_handle_t pct2075_dev);
 int pct2075_wakeup(i2c_master_dev_handle_t pct2075_dev);
-uint32_t pct2075_get_temp(i2c_master_dev_handle_t pct2075_dev);
+int32_t pct2075_get_temp(i2c_master_dev_handle_t pct2075_dev);
 
 /*
  * warning: the following 5 functions don't convert between pct2075 register
