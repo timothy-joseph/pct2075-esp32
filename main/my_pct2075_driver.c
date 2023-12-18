@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <driver/gpio.h>
-#include <driver/i2c_master.h>
+#include <driver/i2c.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
@@ -12,50 +12,49 @@
 void
 app_main(void)
 {
-	i2c_master_bus_config_t i2c_mst_config = {
-		.clk_source = I2C_CLK_SRC_DEFAULT,
-		.i2c_port = -1,
-		.scl_io_num = SCL_IO,
+	struct pct2075_handle_t pct2075_handle = {0};
+	int i2c_master_port = I2C_NUM_0;
+	i2c_config_t conf = {
+		.mode = I2C_MODE_MASTER,
 		.sda_io_num = SDA_IO,
-		.glitch_ignore_cnt = 7,
-		.flags.enable_internal_pullup = true,
+		.sda_pullup_en = GPIO_PULLUP_ENABLE,
+		.scl_io_num = SCL_IO,
+		.scl_pullup_en = GPIO_PULLUP_ENABLE,
+		.master.clk_speed = 200000,
+		.clk_flags = 0,
 	};
-	i2c_master_bus_handle_t bus_handle;
-	i2c_master_dev_handle_t pct2075_handle;
+
 	uint32_t temp;
 	uint16_t count, toggle;
 
-	ESP_ERROR_CHECK(i2c_new_master_bus(&i2c_mst_config, &bus_handle));
+	i2c_param_config(i2c_master_port, &conf);
+	i2c_driver_install(i2c_master_port, conf.mode, 0, 0, 0);
 
-	if (pct2075_init(bus_handle, &pct2075_handle) != 0) {
-		printf("error initializing the pct2075 device\n");
-		while (1);
-	}
+	pct2075_init(i2c_master_port, PCT2075_HARDCODED_ADDRESS, 200,
+		     &pct2075_handle);
 
 	/* this function will generate a error, comment it out for the
 	 * temperature demonstration
 	 */
-	pct2075_get_tidle(pct2075_handle);
 
+	pct2075_shutdown(pct2075_handle);
 	count = 0;
 	toggle = 0;
 	while (1) {
 		printf("tj\n");
 		temp = pct2075_get_temp(pct2075_handle);
-		printf("temperature: %d\n", (unsigned int)temp);
+		printf("temperature %d: %d\n", toggle, (unsigned int)temp);
+		printf("configuration: %hhu", pct2075_get_conf(pct2075_handle));
 
-#if 0
 		count++;
-		if (count == 1) {
-			//printf("toggle %d\n", toggle);
-			//if (toggle == 0)
-				//pct2075_shutdown(pct2075_handle);
-			//else
+		if (count == 10) {
+			toggle = !toggle;
+			if (toggle == 0)
+				pct2075_shutdown(pct2075_handle);
+			else
 				pct2075_wakeup(pct2075_handle);
 			count = 0;
-			//toggle = !toggle;
 		}
-#endif
 		vTaskDelay(200);
 	}
 }
